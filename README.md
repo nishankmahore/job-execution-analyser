@@ -14,6 +14,11 @@ uv sync
 ```bash
 uv run job_execution_analyser -f path/to/records.json
 ```
+or
+
+```bash
+job_execution_analyser -f path/to/records.json
+```
 
 Options:
 
@@ -74,3 +79,24 @@ uv run mypy src
 
 [pre-commit](https://pre-commit.com/) is configured to run ruff and mypy on
 each commit (`uv run pre-commit install` to enable it locally).
+
+## Possible improvements
+
+- `load_records` reads the whole file into memory via `json.loads`; a
+  streaming parser (e.g. `ijson`) would scale better for very large inputs.
+- `retried_job_ids` treats any record with `attempt > 1` as retried. If a
+  job's retries appear as separate records sharing one `job_id` rather
+  than one record with the final `attempt`, this should instead group by
+  `job_id` and check for `attempt` counts/values across the group.
+- No timezone normalization — `started_at`/`finished_at` are parsed as-is,
+  so mixed naive/aware timestamps in the same file would compare
+  inconsistently.
+- Only JSON output is supported; a `--format table|csv` option would help
+  for human-facing use.
+- No CI workflow (e.g. GitHub Actions) wired up to run tests/lint on push.
+- Record validation runs sequentially; for very large files this could be
+  parallelized (e.g. a thread pool) since each record validates
+  independently — validation is mostly I/O-light CPU work, so gains would
+  depend on record count vs. per-record overhead.
+- Logging goes to stderr by default via loguru; no `--log-level` or file
+  sink is configurable from the CLI.

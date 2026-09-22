@@ -14,6 +14,7 @@ def _record(**overrides):
 
 
 def test_summarize_counts_and_average_duration():
+    """Counts by status and averages duration over successful jobs only."""
     records = [
         _record(job_id="job-1", status="success", finished_at="2026-09-20T08:05:00"),
         _record(job_id="job-2", status="success", finished_at="2026-09-20T08:10:00"),
@@ -31,6 +32,7 @@ def test_summarize_counts_and_average_duration():
 
 
 def test_summarize_tracks_retried_jobs():
+    """Jobs with attempt > 1 show up in retried_job_ids."""
     records = [
         _record(job_id="job-1", attempt=1),
         _record(job_id="job-2", attempt=3),
@@ -42,6 +44,7 @@ def test_summarize_tracks_retried_jobs():
 
 
 def test_summarize_empty_records():
+    """An empty input doesn't crash and reports zeroed-out counts."""
     summary = summarize([])
 
     assert summary.total_jobs == 0

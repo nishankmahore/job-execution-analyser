@@ -13,6 +13,7 @@ def _write(tmp_path, payload):
 
 
 def test_load_records_splits_valid_and_invalid(tmp_path):
+    """One malformed record doesn't block the rest — valid/invalid are split."""
     payload = [
         {
             "job_id": "job-1",
@@ -37,12 +38,14 @@ def test_load_records_splits_valid_and_invalid(tmp_path):
 
 
 def test_load_records_rejects_non_array(tmp_path):
+    """A JSON object (not an array) at the top level is a file-level error."""
     path = _write(tmp_path, {"not": "a list"})
     with pytest.raises(JobDataError):
         load_records(path)
 
 
 def test_load_records_rejects_invalid_json(tmp_path):
+    """Unparseable JSON content raises before any record is looked at."""
     path = tmp_path / "records.json"
     path.write_text("{not json")
     with pytest.raises(JobDataError):
@@ -50,5 +53,6 @@ def test_load_records_rejects_invalid_json(tmp_path):
 
 
 def test_load_records_rejects_missing_file(tmp_path):
+    """A nonexistent path raises JobDataError rather than an unhandled OSError."""
     with pytest.raises(JobDataError):
         load_records(tmp_path / "missing.json")
