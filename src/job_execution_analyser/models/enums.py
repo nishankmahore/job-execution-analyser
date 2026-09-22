@@ -2,4 +2,6 @@ from enum import Enum
 
 
 class JobStatus(str, Enum):
-    pass
+    SUCCESS = "success"
+    FAILED = "failed"
+    RUNNING = "running"
