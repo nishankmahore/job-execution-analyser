@@ -1,20 +1,26 @@
 import click
 from loguru import logger
 
+from job_execution_analyser.core.analyzer import summarize
 from job_execution_analyser.exceptions import JobDataError
 from job_execution_analyser.io.loader import load_records
+from job_execution_analyser.models.summary import Summary
 
 
-def run(input_file: str, verbose: bool = False) -> None:
-    """Load and report on a job records file.
+def run(input_file: str, verbose: bool = False) -> Summary:
+    """Load and summarize a job records file.
 
     Plain function, no click machinery — importable directly via
     ``from job_execution_analyser.cli import run`` for callers that don't
-    want the CLI wrapper.
+    want the CLI wrapper. Does not print anything; the caller decides
+    what to do with the result.
 
     Args:
         input_file: Path to a JSON file containing job execution records.
         verbose: If True, log a warning for each malformed record skipped.
+
+    Returns:
+        Summary of the valid records.
 
     Raises:
         SystemExit: If the input file is missing, not valid JSON, or not
@@ -30,12 +36,12 @@ def run(input_file: str, verbose: bool = False) -> None:
         for error in result.errors:
             logger.warning(str(error))
 
-    # TODO: wire up core.analyzer here once it's implemented.
     logger.info(
         "Loaded {} valid record(s), skipped {}.",
         len(result.records),
         len(result.errors),
     )
+    return summarize(result.records)
 
 
 @click.command()
@@ -53,11 +59,10 @@ def run(input_file: str, verbose: bool = False) -> None:
     is_flag=True,
     help="Show warnings for skipped malformed records.",
 )
-def main(input_file: str, verbose: bool) -> None:
-    run(input_file, verbose)
+def cli(input_file: str, verbose: bool) -> None:
+    summary = run(input_file, verbose)
+    click.echo(summary.model_dump_json(indent=2))
 
 
 if __name__ == "__main__":
-    # Lets `python -m job_execution_analyser.cli` work during local dev,
-    # on top of the installed `job_execution_analyser` console script.
-    main()
+    cli()

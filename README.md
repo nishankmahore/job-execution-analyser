@@ -23,6 +23,17 @@ Options:
 A sample input file is provided at `data/sample_jobs.json` (includes a couple
 of intentionally malformed records to show graceful handling).
 
+## Use as a library
+
+```python
+from job_execution_analyser.cli import run
+
+summary = run("data/sample_jobs.json", verbose=True)
+print(summary.total_jobs)
+```
+
+See `examples/basic_usage.py` (run with `uv run python examples/basic_usage.py`).
+
 ## Input format
 
 A JSON array of objects, each with:
